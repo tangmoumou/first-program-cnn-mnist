@@ -60,20 +60,26 @@ with tf.Session(graph=myGraph) as sess:
     sess.run(init)
     saver=tf.train.Saver()
     saver.restore(sess,'my_net/3.ckpt')
-    '''导入新图片数据'''
+    '''导入新图片数据，下面是对新图片的一些操作'''
     im=Image.open('image/2.jpg').convert('L')
     width=float(im.size[0])
     height=float(im.size[1])
+    #创建一个28*28的填充图片
     newImage=Image.new('L',(28,28),(255))
+    #为了简单，这个图片采取的都是高大于宽 ，将目标高设定为20，目标宽nwidth则按此缩放取整，计算得
     nwidth=int(round(20/height*width))
+    #resize原图片，并进行抗锯齿与锐化处理
     img=im.resize((nwidth,20),Image.ANTIALIAS).filter(ImageFilter.SHARPEN)
+    #放在填充图片中心，先计算出距离填充边界的距离，通过paste进行合并
     wleft=int(round((20-nwidth)/2))
     newImage.paste(img,(wleft,4))
+    #转换成tf所能处理的数组格式并展示
     array_image=list(newImage.getdata())
     array_image_1=sess.run(tf.reshape(array_image,(28,28)))
     turn_array_to_image=Image.fromarray(array_image_1)
     plt.imshow(turn_array_to_image)
     plt.show()
+    #输出预测结果
     pre_value=tf.argmax(prediction,1)
     print(sess.run(prediction,feed_dict={xs:array_image}))
     print(sess.run(pre_value,feed_dict={xs:array_image}))
